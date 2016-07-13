@@ -1,0 +1,12 @@
+
+
+elasticsearch:
+    host: localhost
+    port: 9200
+    index: .monitor
+    types:
+      system: system
+      stats: stats
+
+scheduler:
+  interval: 10s
