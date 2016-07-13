@@ -1,12 +1,17 @@
 
-
+# Elasticsearch defenition
 elasticsearch:
-    host: localhost
-    port: 9200
-    index: .monitor
-    types:
-      system: system
-      stats: stats
+    target:
+      host: localhost
+      port: 9200
+      index: .monitor
+      types:
+        system: system
+        stats: stats
+    source:
+      host: localhost
+      port: 9200
 
+#Scheduler defenition
 scheduler:
   interval: 10s
