@@ -14,4 +14,7 @@ elasticsearch:
 
 #Scheduler defenition
 scheduler:
-  interval: 10s
+  interval:
+    #can be second, minute, hour
+    units: second
+    value: 10
