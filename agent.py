@@ -10,18 +10,28 @@ class Elastic:
         self.client = Elasticsearch(hosts)
 
 
-class ElasticStatsReader:
-    pass
+class SimpleReader(object):
+    def __init__(self, config):
+        self.target = Elasticsearch(config.get_elastic_target_host())
+        self.source = Elasticsearch(config.get_elastic_source_host())
+
+
+class ElasticStatsReader(SimpleReader):
+    def __init__(self, config):
+        super(ElasticStatsReader, self).__init__(config)
 
 
 
-class SystemStatsReader:
-    pass
+class SystemStatsReader(SimpleReader):
+    def __init__(self, config):
+        super(SystemStatsReader, self).__init__(config)
+
 
 
 
 class ElasticWriter:
-    pass
+    def __init__(self):
+        self.elastic = Elastic
 
 
 
@@ -31,6 +41,12 @@ class Configuration:
 
     def get_interval(self):
         return self.config['scheduler']['interval']
+
+    def get_elastic_target_host(self):
+        return self.config['elasticsearch']['target']['host'] + ':' + str(self.config['elasticsearch']['target']['port'])
+
+    def get_elastic_source_host(self):
+        return self.config['elasticsearch']['source']['host'] + ':' + str(self.config['elasticsearch']['source']['port'])
 
 
 def run():
@@ -42,6 +58,7 @@ def main(args):
     f = open('./config/config.yaml')
     conf = Configuration(yaml.load(f))
     f.close()
+
 
 
 
