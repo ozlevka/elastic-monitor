@@ -10,7 +10,11 @@ class Elastic:
         self.client = Elasticsearch(hosts)
 
 
+
 class SimpleReader(object):
+    '''
+    Contains base types for Elasticsearch communictaion
+    '''
     def __init__(self, config):
         self.target = Elasticsearch(config.get_elastic_target_host())
         self.source = Elasticsearch(config.get_elastic_source_host())

@@ -30,6 +30,7 @@ def test_data_structures():
 
     print sysreader.source.cluster.health()
     print estats.target.cluster.stats()
+    print estats.target.indices.stats()
 
 
 if __name__ == '__main__':
