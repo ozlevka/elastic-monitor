@@ -3,10 +3,12 @@ import sys
 import yaml
 from elasticsearch import Elasticsearch
 import psutil
+import copy
 from datetime import datetime
 import socket
 import logging
 from apscheduler.schedulers.blocking import BlockingScheduler
+from apscheduler.executors.pool import ThreadPoolExecutor
 
 
 class SimpleReader(object):
@@ -26,8 +28,12 @@ class ElasticStatsReader(SimpleReader):
 
 class SystemStatsReader(SimpleReader):
     def __init__(self, config):
+        logging.getLogger('apscheduler.scheduler').info('execute reader constructor')
         super(SystemStatsReader, self).__init__(config)
         self.config = config
+        self.logger = logging.getLogger('system.reader')
+        self.logger.setLevel(config.get_logging_level())
+        self.previouse = None
 
     def read_data(self):
         cpu = psutil.cpu_times()
@@ -38,7 +44,6 @@ class SystemStatsReader(SimpleReader):
 
         return {
             'host': socket.gethostname(),
-            '@timestamp': datetime.now(),
             'cpu': {
                 'user': cpu.user,
                 'nice': cpu.nice,
@@ -98,8 +103,19 @@ class SystemStatsReader(SimpleReader):
 
     def index_data(self):
         data = self.read_data()
+        if self.previouse == None:
+            self.previouse = copy.deepcopy(data)
+        else:
+            index_data = self.merge(data)
+            index_data['@timestamp'] = datetime.now()
+            self.logger.info(str(self.target.index(self.config.get_target_index_name(), self.config.get_target_system_type(), index_data)))
 
-        return self.target.index(self.config.get_target_index_name(), self.config.get_target_system_type(), data)
+    def merge(self, data):
+        prev = copy.deepcopy(self.previouse)
+        self.previouse = copy.deepcopy(data)
+        for k in data['cpu']:
+            data['cpu'][k] = data['cpu'][k] - prev['cpu'][k]
+        return data
 
 
 class Configuration:
@@ -124,22 +140,43 @@ class Configuration:
     def get_target_system_type(self):
         return  self.config['elasticsearch']['target']['types']['system']
 
+    def get_logging_level(self):
+        if self.config['logging']['level'] == 'DEBUG':
+            return logging.DEBUG
+        if self.config['logging']['level'] == 'INFO':
+            return logging.INFO
+        if self.config['logging']['level'] == 'WARN':
+            return logging.WARN
+        if self.config['logging']['level'] == 'ERROR':
+            return logging.ERROR
+        if self.config['logging']['level'] == 'FATAL':
+            return logging.FATAL
 
 
-def run_system_only():
+
+def run_system_only(sys_reader):
+    sys_reader.index_data()
+
+
+def add_job_to_scheduler(scheduler, job_func, args):
     global conf
-    system = SystemStatsReader(config=conf)
-    result = system.index_data()
-    print
+    interval_unit = conf.get_interval()['units']
+    interval_value = conf.get_interval()['value']
+    if interval_unit == 'second':
+        scheduler.add_job(job_func, 'interval', seconds=interval_value, args=args)
+    elif interval_unit == 'minute':
+        scheduler.add_job(job_func, 'interval', minutes=interval_value, args=args)
+    elif interval_unit == 'hour':
+        scheduler.add_job(job_func, 'interval', hours=interval_value, args=args)
 
 
 def main(args):
     run_flag = args[1]
     bs = BlockingScheduler()
-    interval = conf.get_interval()
-    bs.add_executor('processpool')
+    bs.add_executor(ThreadPoolExecutor(5))
+    system = SystemStatsReader(conf)
     if run_flag == 'sys':
-        bs.add_job(run_system_only, 'interval', seconds=interval['value'])
+        add_job_to_scheduler(bs,run_system_only, [system])
     elif run_flag == 'elastic':
         pass
     else:
@@ -147,11 +184,10 @@ def main(args):
     bs.start()
 
 
-
 if __name__ == '__main__':
     f = open('./config/config.yaml')
     conf = Configuration(yaml.load(f))
     f.close()
     logging.basicConfig()
-    logging.getLogger('apscheduler.scheduler').setLevel(logging.DEBUG)
+    logging.getLogger('apscheduler.scheduler').setLevel(conf.get_logging_level())
     main(sys.argv)

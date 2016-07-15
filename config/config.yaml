@@ -15,6 +15,10 @@ elasticsearch:
 #Scheduler defenition
 scheduler:
   interval:
-    #can be second, minute, hour
+    #possible values second, minute, hour
     units: second
     value: 10
+
+logging:
+  #possible values DEBUG INFO WARN ERROR FATAL
+  level: DEBUG
