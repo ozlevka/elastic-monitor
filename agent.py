@@ -19,6 +19,10 @@ class SimpleReader(object):
         self.target = Elasticsearch(config.get_elastic_target_host())
         self.source = Elasticsearch(config.get_elastic_source_host())
 
+    def calculate_difference(self, data, prev, parent_key):
+        for k in data[parent_key]:
+            data[parent_key][k] = data[parent_key][k] - prev[parent_key][k]
+
 
 class ElasticStatsReader(SimpleReader):
     def __init__(self, config):
@@ -107,15 +111,18 @@ class SystemStatsReader(SimpleReader):
             self.previouse = copy.deepcopy(data)
         else:
             index_data = self.merge(data)
-            index_data['@timestamp'] = datetime.now()
+            index_data['@timestamp'] = datetime.utcnow()
             self.logger.info(str(self.target.index(self.config.get_target_index_name(), self.config.get_target_system_type(), index_data)))
 
     def merge(self, data):
         prev = copy.deepcopy(self.previouse)
         self.previouse = copy.deepcopy(data)
-        for k in data['cpu']:
-            data['cpu'][k] = data['cpu'][k] - prev['cpu'][k]
+        self.calculate_difference(data, prev, 'cpu')
+        self.calculate_difference(data, prev, 'diskio')
+        self.calculate_difference(data, prev, 'netio')
         return data
+
+
 
 
 class Configuration:
@@ -135,7 +142,7 @@ class Configuration:
         return self.config['elasticsearch']['source']['host'] + ':' + str(self.config['elasticsearch']['source']['port'])
 
     def get_target_index_name(self):
-        return self.config['elasticsearch']['target']['index']
+        return self.config['elasticsearch']['target']['index']['name'] + "_" + datetime.utcnow().strftime(self.config['elasticsearch']['target']['index']['dateformat'])
 
     def get_target_system_type(self):
         return  self.config['elasticsearch']['target']['types']['system']

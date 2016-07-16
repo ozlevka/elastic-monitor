@@ -4,7 +4,9 @@ elasticsearch:
     target:
       host: localhost
       port: 9200
-      index: .monitor
+      index:
+        name: .monitor
+        dateformat: "%Y%m%d"
       types:
         system: system
         stats: stats
@@ -17,7 +19,7 @@ scheduler:
   interval:
     #possible values second, minute, hour
     units: second
-    value: 10
+    value: 5
 
 logging:
   #possible values DEBUG INFO WARN ERROR FATAL
