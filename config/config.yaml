@@ -6,6 +6,7 @@ elasticsearch:
       port: 9200
       index:
         name: .monitor
+        #right now must be compitible with datetime.strftime
         dateformat: "%Y%m%d"
       types:
         system: system

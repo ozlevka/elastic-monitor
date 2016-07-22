@@ -28,6 +28,12 @@ class ElasticStatsReader(SimpleReader):
     def __init__(self, config):
         super(ElasticStatsReader, self).__init__(config)
 
+    def read(self):
+        #print self.source.cluster.stats()
+        nodes = self.source.nodes.stats()
+        for k in nodes['nodes']:
+            print nodes['nodes'][k]['jvm']['gc']
+
 
 
 class SystemStatsReader(SimpleReader):
@@ -164,6 +170,9 @@ class Configuration:
 def run_system_only(sys_reader):
     sys_reader.index_data()
 
+def run_elastic_only(elastic_reader):
+    elastic_reader.read()
+
 
 def add_job_to_scheduler(scheduler, job_func, args):
     global conf
@@ -182,10 +191,11 @@ def main(args):
     bs = BlockingScheduler()
     bs.add_executor(ThreadPoolExecutor(5))
     system = SystemStatsReader(conf)
+    elastic = ElasticStatsReader(conf)
     if run_flag == 'sys':
         add_job_to_scheduler(bs,run_system_only, [system])
     elif run_flag == 'elastic':
-        pass
+        add_job_to_scheduler(bs, run_elastic_only, [elastic])
     else:
         pass
     bs.start()
