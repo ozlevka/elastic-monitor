@@ -4,21 +4,16 @@ elasticsearch:
     host: localhost
     port: 9200
     index: .manager
-  slaves:
-    - cluster:
-        host: localhost1
-        port: 9200
-        scheduler:
-          interval: 5
+
+manager:
+  tasks:
+    - task:
+        name: First task
+        debug: true
+        interval:
           #possible values: seconds minutes hours
           units: seconds
-    - cluster:
-        host: localhost2
-        port: 9200
-        scheduler:
-          interval: 10
-          #possible values: seconds minutes hours
-          units: seconds
+          value: 10
 
 
 logging:
