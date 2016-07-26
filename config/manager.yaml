@@ -10,6 +10,7 @@ manager:
     - task:
         name: First task
         debug: true
+        code: mng = Manager(task); mng.run_for_targets()
         interval:
           #possible values: seconds minutes hours
           units: seconds

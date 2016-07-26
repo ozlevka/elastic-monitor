@@ -57,8 +57,7 @@ class Manager:
 
 
 def run(task):
-    mng = Manager(task)
-    mng.run_for_targets()
+    exec task['task']['code']
 
 
 
