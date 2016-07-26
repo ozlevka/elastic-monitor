@@ -11,7 +11,7 @@ Script is fill gape for elasticsearch marvel when marvel is not take enough para
 #Delete manager 
 ##delete indexes by configuration 
    configuration is elasticsearch based. Stored josn format is
-   '''javascript
+   ```javascript
         { 
             "template": ".marvel*",
             "ttl": 20,
@@ -22,4 +22,4 @@ Script is fill gape for elasticsearch marvel when marvel is not take enough para
                 "user": null,
                 "password": null
             }
-   '''
+   ```
