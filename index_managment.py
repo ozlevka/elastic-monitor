@@ -91,7 +91,7 @@ def add_scheduler_tasks(scheduler):
 def main(argv):
     global config
     global logger
-    f = open(os.environ['ES_MANAGER_CONFIG'], mode='rb')
+    f = open('./config/manager.yaml', mode='rb')
     config = yaml.load(f)
     f.close()
     logging.basicConfig()
