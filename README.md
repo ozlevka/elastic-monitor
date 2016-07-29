@@ -25,7 +25,7 @@ Script is fill gape for elasticsearch marvel when marvel is not take enough para
         }
    ```
    for container configuration use next yaml:
-    ```yaml
+    ```
         manager:
               image: index-manager
               links:
