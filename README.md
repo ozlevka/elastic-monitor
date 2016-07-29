@@ -27,13 +27,13 @@ Script is fill gape for elasticsearch marvel when marvel is not take enough para
    for container configuration use next yaml:
     ```
         manager:
-              image: index-manager
-              links:
-                - master
-              volumes:
-                - /home/ozlevka/disk/projects/elastic-monitor/config:/opt/application/config:ro
-                - /etc/localtime:/etc/localtime:ro
-              command: "python manager.py"
-              networks:
-              - devcluster
+          image: index-manager
+          links:
+            - master
+        volumes:
+            - /home/ozlevka/disk/projects/elastic-monitor/config:/opt/application/config:ro
+            - /etc/localtime:/etc/localtime:ro
+        command: "python manager.py"
+        networks:
+            - devcluster
     ```
