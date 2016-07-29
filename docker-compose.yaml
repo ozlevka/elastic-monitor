@@ -58,6 +58,7 @@ services:
       volumes:
         - /home/ozlevka/disk/projects/elastic-monitor/config:/opt/application/config:ro
         - /etc/localtime:/etc/localtime:ro
+      command: "python manager.py"
       networks:
       - devcluster
 networks:

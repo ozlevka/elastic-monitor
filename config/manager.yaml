@@ -1,7 +1,7 @@
 
 elasticsearch:
   manager:
-    host: localhost
+    host: master
     port: 9200
     index: .manager
 
@@ -13,8 +13,8 @@ manager:
         code: mng = Manager(task); mng.run_for_targets()
         interval:
           #possible values: seconds minutes hours
-          units: seconds
-          value: 10
+          units: minutes
+          value: 12
 
 
 logging:

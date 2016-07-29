@@ -10,3 +10,4 @@ VOLUME /opt/application
 COPY index_managment.py /opt/application/manager.py
 COPY fnmatch.py /opt/application/fnmatch.py
 
+WORKDIR /opt/application/
