@@ -8,5 +8,5 @@ RUN pip install pyyaml logging apscheduler elasticsearch
 
 VOLUME /opt/application
 COPY index_managment.py /opt/application/manager.py
-COPY ./config/manager.yaml /opt/application/config/manager.yaml
+COPY fnmatch.py /opt/application/fnmatch.py
 

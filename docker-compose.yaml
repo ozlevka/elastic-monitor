@@ -1,0 +1,65 @@
+version: "2.0"
+
+services:
+    master: 
+      image: elasticsearch:latest
+      environment: 
+        ES_HEAP_SIZE: 512M
+      mem_limit: 1g
+      volumes:
+        - /etc/localtime:/etc/localtime:ro
+      networks:
+        - devcluster
+      ports: 
+        - "9200:9200"
+      command: "elasticsearch -Des.cluster.name=devcluster -Des.node.data=false -Des.node.master=true "
+    elasticnode1:
+      image: elasticsearch:latest
+      environment: 
+        ES_HEAP_SIZE: 2g
+      mem_limit: 3g
+      volumes:
+        - /home/ozlevka/disk/data/devcluster:/usr/share/elasticsearch/data
+        - /etc/localtime:/etc/localtime:ro
+      links: 
+        - master
+      command: "elasticsearch -Des.cluster.name=devcluster -Des.node.data=true -Des.node.master=false -Ddiscovery.zen.ping.unicast.hosts=master"
+      networks:
+        - devcluster
+    elasticnode2:
+      image: elasticsearch:latest
+      environment: 
+        ES_HEAP_SIZE: 2g
+      mem_limit: 3g
+      volumes:
+        - /home/ozlevka/disk/data/devcluster:/usr/share/elasticsearch/data
+        - /etc/localtime:/etc/localtime:ro
+      links: 
+        - master
+      command: "elasticsearch -Des.cluster.name=devcluster -Des.node.data=true -Des.node.master=false -Ddiscovery.zen.ping.unicast.hosts=master"
+      networks:
+        - devcluster
+    kibana:
+      image: ozlevka/kibana-sense
+      command: kibana -e http://master:9200
+      mem_limit: 512m
+      volumes:
+        - /etc/localtime:/etc/localtime:ro
+      ports: 
+        - "5601:5601"
+      links:
+        - master
+      networks:
+        - devcluster
+    manager:
+      image: index-manager
+      links:
+        - master
+      volumes:
+        - /home/ozlevka/disk/projects/elastic-monitor/config:/opt/application/config:ro
+        - /etc/localtime:/etc/localtime:ro
+      networks:
+      - devcluster
+networks:
+  devcluster:
+    driver: bridge
