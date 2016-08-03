@@ -35,5 +35,5 @@ Script is fill gape for elasticsearch marvel when marvel is not take enough para
             - /etc/localtime:/etc/localtime:ro
         command: "python manager.py"
         networks:
-            - devcluster
+          - devcluster
     ```
