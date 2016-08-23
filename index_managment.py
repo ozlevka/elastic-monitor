@@ -14,7 +14,7 @@ logger = None
 class Manager:
     def __init__(self, task):
         self.task = task
-        self.client = self.createElasticClient(config['elasticsearch']['manager']['host'], config['elasticsearch']['manager']['port'])
+        self.client = self.createElasticClient(task['task']['elasticsearch']['host'], str(task['task']['elasticsearch']['port']))
         self.targetClient = None
 
     def createElasticClient(self, host, port):
@@ -22,7 +22,7 @@ class Manager:
         return Elasticsearch(hosts=[url])
 
     def get_indices_data(self):
-        res = self.client.search(index=config['elasticsearch']['manager']['index'])
+        res = self.client.search(index=self.task['task']['elasticsearch']['index'])
         return [x['_source'] for x in res['hits']['hits']]
 
     def run_for_targets(self):
@@ -38,7 +38,9 @@ class Manager:
                 delete_date = self.calculate_delete_date(datetime.fromtimestamp(float(res[target]['settings']['index']['creation_date']) / 1000),
                                                          index['ttl'], index['units'])
                 if datetime.now() > delete_date and not self.task['task']['debug']:
+                    logging.info('going delete ' + target + ' for real because deleted date is:' + str(delete_date))
                     self.targetClient.indices.delete(target)
+                    logging.info(target + ' sucessfuly deleted')
                 else:
                     logger.debug(target + ' will be deleted in: ' + str(delete_date))
 
@@ -57,7 +59,8 @@ class Manager:
 
 
 def run(task):
-    exec task['task']['code']
+    mng = Manager(task)
+    mng.run_for_targets()
 
 
 

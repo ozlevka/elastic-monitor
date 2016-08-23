@@ -1,20 +1,17 @@
 
-elasticsearch:
-  manager:
-    host: localhost
-    port: 9200
-    index: .manager
-
 manager:
   tasks:
     - task:
         name: First task
         debug: true
-        code: mng = Manager(task); mng.run_for_targets()
         interval:
           #possible values: seconds minutes hours
           units: seconds
           value: 10
+        elasticsearch:
+          host: localhost
+          port: 9200
+          index: .manager
 
 
 logging:
