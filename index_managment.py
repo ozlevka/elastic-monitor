@@ -56,15 +56,9 @@ class Manager:
         else:
             return create_date + timedelta(days=ttl)
 
-
-
 def run(task):
     mng = Manager(task)
     mng.run_for_targets()
-
-
-
-
 
 def get_logging_level():
     if config['logging']['level'] == 'DEBUG':
