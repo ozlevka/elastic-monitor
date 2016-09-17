@@ -9,11 +9,12 @@ import socket
 import logging
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.executors.pool import ThreadPoolExecutor
+import re
 
 
 class SimpleReader(object):
     '''
-    Contains base types for Elasticsearch comunictaion
+    Base class that hold elasticsearch connections and basic functionality
     '''
     def __init__(self, config):
         self.target = Elasticsearch(config.get_elastic_target_host())
@@ -25,15 +26,82 @@ class SimpleReader(object):
 
 
 class ElasticStatsReader(SimpleReader):
+    last_doc_query = {"size": 1, "query": {"match_all": {}}, "sort": [{"@timestamp": {"order": "desc"}}]}
+    name_replace_regex = r"[.|\s]+"
     def __init__(self, config):
         super(ElasticStatsReader, self).__init__(config)
+        self.index = conf.get_target_index_name()
+        self.type = 'nodestat'
+        self.deltas = config.get_delta_fields()
+        self.name_expression = config.get_name_expression()
 
     def read(self):
         #print self.source.cluster.stats()
         nodes = self.source.nodes.stats()
-        for k in nodes['nodes']:
-            print nodes['nodes'][k]['jvm']['gc']
+        return self.calculate_document(nodes['nodes'])
 
+    def write(self, document):
+        print self.target.index(self.index, self.type, document)
+
+    def run(self):
+        self.write(self.read())
+
+    def get_value_for_delta(self, delta, document):
+        value = document
+        fields = delta.split('.')
+        for f in fields:
+            if f in value:
+                if not isinstance(value[f], dict):
+                    return value[f]
+                else:
+                    value = value[f]
+
+        raise KeyError(delta + ' is not valid sequence')
+
+    def append_delta(self, document, delta, value):
+        arr = delta.split('.')
+        tmp = document
+        for d in arr:
+            if d != arr[-1]:
+                tmp[d] = {}
+                tmp = tmp[d]
+            else:
+                tmp[d] = value
+
+    def calculate_deltas(self, document):
+        try:
+            latest_document = self.target.search(self.index, body=ElasticStatsReader.last_doc_query)
+        except Exception, e:
+            return
+        if latest_document['hits']['total'] > 0:
+            latest_document = latest_document['hits']['hits'][0]['_source']
+            for d in self.deltas:
+                for node_key in document:
+                    if node_key != '@timestamp':
+                        if not 'delta' in document[node_key]:
+                            document[node_key]['delta'] = {}
+                        doc_delta_value = self.get_value_for_delta(d, document[node_key])
+                        latest_delta_value = self.get_value_for_delta(d, latest_document[node_key])
+                        self.append_delta(document[node_key]['delta'], d, (doc_delta_value - latest_delta_value))
+
+
+
+    def calculate_document(self, nodes):
+        document = {
+            '@timestamp': datetime.utcnow()
+        }
+
+        if self.name_expression:
+            for k in nodes:
+                name = re.sub(ElasticStatsReader.name_replace_regex, '_', nodes[k][self.name_expression])
+                document[name] = nodes[k]
+        else:
+            for k in nodes:
+                document[k] = nodes[k]
+
+        if self.deltas:
+            self.calculate_deltas(document)
+        return document
 
 
 class SystemStatsReader(SimpleReader):
@@ -129,8 +197,6 @@ class SystemStatsReader(SimpleReader):
         return data
 
 
-
-
 class Configuration:
     '''
     Contains information reader from config yaml
@@ -165,13 +231,25 @@ class Configuration:
         if self.config['logging']['level'] == 'FATAL':
             return logging.FATAL
 
+    def get_delta_fields(self):
+        if 'delta' in self.config['elasticsearch']['target']['index']:
+            return self.config['elasticsearch']['target']['index']['delta']
+        else:
+            return None
+
+    def get_name_expression(self):
+        if 'nodeprefix' in self.config['elasticsearch']['target']['index']:
+            return self.config['elasticsearch']['target']['index']['nodeprefix']
+        else:
+            return None
+
 
 
 def run_system_only(sys_reader):
     sys_reader.index_data()
 
 def run_elastic_only(elastic_reader):
-    elastic_reader.read()
+    elastic_reader.run()
 
 
 def add_job_to_scheduler(scheduler, job_func, args):
@@ -196,8 +274,9 @@ def main(args):
         add_job_to_scheduler(bs,run_system_only, [system])
     elif run_flag == 'elastic':
         add_job_to_scheduler(bs, run_elastic_only, [elastic])
-    else:
-        pass
+    elif run_flag == None:
+        add_job_to_scheduler(bs,run_system_only, [system])
+        add_job_to_scheduler(bs, run_elastic_only, [elastic])
     bs.start()
 
 

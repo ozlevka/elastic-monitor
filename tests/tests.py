@@ -1,59 +1,35 @@
 
 
-import sys
-sys.path.append('../')
-
-import yaml
-from agent import Configuration
-from agent import ElasticStatsReader
-from agent import SystemStatsReader
-import socket
 
 
-def configuration_test():
-    config = {
-        'scheduler': {
-            'interval': {
-                "units": 'seconds',
-                'value': 10
-            }
+
+
+a1 = {
+    'a': 5,
+    'b': {
+        'c': {
+            'd': 8
         }
     }
-
-    c = Configuration(config)
-
-    print 'Get interval test ' +  str(c.get_interval()['units'] == 'seconds' and c.get_interval()['value'] == 10)
+}
 
 
-def test_data_structures():
-    f = open('../config/config.yaml')
-    c = Configuration(yaml.load(f))
-    f.close()
-    sysreader = SystemStatsReader(c)
-    estats = ElasticStatsReader(c)
-
-    print sysreader.source.cluster.health()
-    print estats.target.cluster.stats()
-    print estats.target.indices.stats()
+print a1
 
 
-def test_system_data():
-    f = open('../config/config.yaml')
-    c = Configuration(yaml.load(f))
-    f.close()
-    sysreader = SystemStatsReader(c)
-    print sysreader.read_data()
+def try_change_deep_value(obj):
+    value = obj
+    keys = ['c', 'd']
+    for k in keys:
+        if k == keys[-1]:
+            value[k] = 15
+        value = value[k]
 
 
-def test_index_system_data():
-    f = open('../config/config.yaml')
-    c = Configuration(yaml.load(f))
-    f.close()
-    sysreader = SystemStatsReader(c)
-    print sysreader.index_data()
 
-if __name__ == '__main__':
-    #configuration_test()
-    #test_data_structures()
-    #test_system_data()
-    test_index_system_data()
+
+
+try_change_deep_value(a1['b'])
+
+
+print a1

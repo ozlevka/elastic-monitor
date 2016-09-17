@@ -6,8 +6,14 @@ elasticsearch:
       port: 9200
       index:
         name: .monitor
-        #right now must be compitible with datetime.strftime
+        #right now must be compitible with datetime.strftime and represent time appending to name of index
         dateformat: "%Y%m%d"
+        # name of field that prefix node (by default elasticsearch node id not exactly usefull
+        nodeprefix: host
+        # will calculate differrence with last saved document and save number to elasticsearch
+        delta:
+        #   - jvm.gc.collectors.old.collection_count
+        #   - indices.docs.count
       types:
         system: system
         stats: stats
