@@ -1,0 +1,10 @@
+{
+    "title": "Heap usage all nodes",
+    "visState": "{\"aggs\":[{\"id\":\"1\",\"params\":{\"customLabel\":\"Heap usage percent 1\",\"field\":\"node_id.jvm.mem.heap_used_percent\"},\"schema\":\"metric\",\"type\":\"avg\"},{\"id\":\"2\",\"params\":{\"customInterval\":\"2h\",\"extended_bounds\":{},\"field\":\"@timestamp\",\"interval\":\"auto\",\"min_doc_count\":1},\"schema\":\"segment\",\"type\":\"date_histogram\"},{\"id\":\"3\",\"params\":{\"customLabel\":\"Heap usage percent 2\",\"field\":\"node_id.jvm.mem.heap_used_percent\"},\"schema\":\"metric\",\"type\":\"avg\"},{\"id\":\"4\",\"params\":{\"customLabel\":\"Heap usage percent 3\",\"field\":\"node_id.jvm.mem.heap_used_percent\"},\"schema\":\"metric\",\"type\":\"avg\"}],\"listeners\":{},\"params\":{\"addLegend\":true,\"addTimeMarker\":false,\"addTooltip\":true,\"defaultYExtents\":false,\"drawLinesBetweenPoints\":true,\"interpolate\":\"linear\",\"radiusRatio\":9,\"scale\":\"linear\",\"setYExtents\":false,\"shareYAxis\":true,\"showCircles\":true,\"smoothLines\":false,\"times\":[],\"yAxis\":{}},\"title\":\"New Visualization\",\"type\":\"line\"}",
+    "uiStateJSON": "{}",
+    "description": "",
+    "version": 1,
+    "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\".monitor*\",\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\"}},\"filter\":[]}"
+    }
+}
